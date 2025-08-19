@@ -1,0 +1,182 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "speechrecognition"
+version = "0.1.0"
+description = "화자의 발화를 IPA로 변환하고 최종적으로 텍스트로 표현하기 위한 음성 인식 시스템"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "SpeechRecognition Team", email = "team@speechrecognition.com"}
+]
+keywords = ["speech", "recognition", "ipa", "korean", "asr", "forced-alignment"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+dependencies = [
+    "torch>=1.9.0",
+    "torchaudio>=0.9.0",
+    "numpy>=1.21.0",
+    "librosa>=0.9.0",
+    "soundfile>=0.10.0",
+    "transformers>=4.20.0",
+    "datasets>=2.0.0",
+    "accelerate>=0.20.0",
+    "mlflow>=1.30.0",
+    "tensorboard>=2.10.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.11.0",
+    "pandas>=1.3.0",
+    "scikit-learn>=1.1.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.64.0",
+    "wandb>=0.13.0",
+    "omegaconf>=2.2.0",
+    "hydra-core>=1.2.0",
+    "pydantic>=1.9.0",
+    "rich>=12.0.0",
+    "click>=8.0.0",
+    "argparse>=1.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "isort>=5.10.0",
+    "flake8>=5.0.0",
+    "mypy>=0.991",
+    "pre-commit>=2.20.0",
+    "jupyter>=1.0.0",
+    "ipython>=8.0.0",
+]
+
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "myst-parser>=0.17.0",
+    "sphinx-autodoc-typehints>=1.19.0",
+]
+
+gpu = [
+    "torch>=1.9.0+cu113",
+    "torchaudio>=0.9.0+cu113",
+]
+
+mac = [
+    "torch>=1.9.0",
+    "torchaudio>=0.9.0",
+    "librosa>=0.9.0",
+    "soundfile>=0.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/speechrecognition"
+Documentation = "https://speechrecognition.readthedocs.io"
+Repository = "https://github.com/yourusername/speechrecognition.git"
+"Bug Tracker" = "https://github.com/yourusername/speechrecognition/issues"
+
+[project.scripts]
+speechrecognition-train = "scripts.train:main"
+speechrecognition-evaluate = "scripts.evaluate:main"
+speechrecognition-infer = "scripts.infer:main"
+speechrecognition-manifest = "scripts.make_manifest:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.md", "*.yaml", "*.yml"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["speechrecognition"]
+known_third_party = ["torch", "numpy", "librosa", "transformers"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

@@ -1,0 +1,11 @@
+inherit: "_base.yaml"
+exp_name: "whisper_tiny_ko"
+engine: "whisper"
+model:
+  name_or_path: "openai/whisper-tiny"
+  lang: "ko"
+  task: "transcribe"
+  freeze_encoder: false
+decode:
+  beam_size: 5
+  lm_weight: 0.0

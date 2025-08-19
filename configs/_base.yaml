@@ -1,0 +1,32 @@
+seed: 42
+project_name: "speech-benchmark"
+exp_name: "debug"
+mlflow:
+  enabled: true
+  tracking_uri: "./mlruns"
+  experiment: "local-dev"
+
+data:
+  manifest_train: "data/processed/train.jsonl"
+  manifest_valid: "data/processed/valid.jsonl"
+  manifest_test:  "data/processed/test.jsonl"
+  sample_rate: 16000
+  text_normalize: "basic"   # 숫자/단위 규칙 id
+  num_workers: 4
+
+train:
+  batch_size: 8
+  gradient_accumulation: 1
+  max_steps: 2000
+  lr: 3e-5
+  fp16: true
+  save_every: 500
+  log_every: 50
+
+eval:
+  metrics: [ "wer", "cer" ]
+  beam_size: 5
+
+output:
+  ckpt_dir: "models/${exp_name}"
+  run_dir: "runs/${exp_name}"

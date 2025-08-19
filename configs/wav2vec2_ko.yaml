@@ -1,0 +1,10 @@
+inherit: "_base.yaml"
+exp_name: "wav2vec2_ko"
+engine: "wav2vec2"
+model:
+  name_or_path: "facebook/wav2vec2-large-xlsr-53"
+  ctc_blank_token: "<pad>"
+  vocab_path: "configs/vocab_ko.json"
+decode:
+  beam_size: 10
+  lm_weight: 0.6       # n-gram 혹은 transformer LM 연동 시

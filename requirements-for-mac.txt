@@ -1,0 +1,27 @@
+# --- Core ---
+torch>=2.3
+torchaudio>=2.3
+transformers>=4.43
+datasets>=2.20
+accelerate>=0.32
+sentencepiece>=0.2
+soundfile>=0.12
+librosa>=0.10
+numpy>=1.26
+tqdm>=4.66
+rich>=13.7
+pyyaml>=6.0
+jiwer>=3.0
+
+# Logging / tracking
+mlflow>=2.14
+
+# API (demo)
+fastapi>=0.111
+uvicorn[standard]>=0.30
+
+# Optional: Whisper 빠른 추론(추론용)
+faster-whisper>=1.0
+
+# Optional: 노트북
+ipykernel>=6.29

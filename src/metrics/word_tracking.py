@@ -8,7 +8,6 @@ import numpy as np
 from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 
 from .asr_metrics import calculate_wer, calculate_cer

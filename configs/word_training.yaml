@@ -1,0 +1,149 @@
+# 단어 학습을 위한 설정 파일
+_base: _base.yaml
+
+# 데이터 설정
+data:
+  # 단어 학습용 데이터 경로
+  train_manifest: "data/manifest_word_train.json"
+  val_manifest: "data/manifest_word_val.json"
+  
+  # 단어 사전 파일
+  vocabulary_file: "data/word_vocabulary.txt"
+  
+  # 오디오 설정
+  sample_rate: 16000
+  max_duration: 5.0  # 단어는 보통 짧음
+  min_duration: 0.5
+  
+  # 특징 추출 설정
+  feature_type: "mfcc"
+  n_mfcc: 13
+  n_fft: 2048
+  hop_length: 512
+
+# 모델 설정
+model:
+  type: "wav2vec2"  # 또는 "whisper", "conformer"
+  pretrained_model: "facebook/wav2vec2-base"
+  
+  # 단어 학습에 최적화된 설정
+  hidden_size: 768
+  num_hidden_layers: 12
+  num_attention_heads: 12
+  
+  # 어휘 크기 (한국어 단어 수에 맞춤)
+  vocab_size: 1000  # 단어 사전 크기
+  
+  # 드롭아웃
+  dropout: 0.1
+  attention_dropout: 0.1
+
+# 학습 설정
+training:
+  # 단어 학습에 적합한 설정
+  batch_size: 32
+  learning_rate: 1e-4
+  weight_decay: 0.01
+  
+  # 에포크 설정
+  max_epochs: 100
+  
+  # 스케줄러
+  scheduler: "cosine"
+  warmup_steps: 1000
+  max_steps: 50000
+  
+  # 체크포인트
+  save_steps: 1000
+  eval_steps: 1000
+  logging_steps: 100
+  
+  # 조기 종료
+  early_stopping_patience: 5
+  
+  # 그래디언트 클리핑
+  max_grad_norm: 1.0
+  
+  # 혼합 정밀도
+  fp16: true
+  
+  # 데이터 증강
+  data_augmentation:
+    enabled: true
+    noise_level: 0.01
+    time_shift: 0.1
+    pitch_shift: 0.1
+
+# 평가 설정
+evaluation:
+  # 단어 수준 평가 메트릭
+  metrics:
+    - "word_error_rate"
+    - "phoneme_error_rate"
+    - "character_error_rate"
+  
+  # 평가 주기
+  eval_strategy: "steps"
+  eval_steps: 1000
+  
+  # 모델 저장
+  save_strategy: "steps"
+  save_steps: 1000
+
+# 출력 설정
+output:
+  # 모델 저장 경로
+  model_dir: "models/word_model"
+  
+  # 로그 및 체크포인트
+  logging_dir: "runs/word_training"
+  
+  # 최종 모델
+  final_model_path: "models/word_model_final"
+  
+  # 추론 결과
+  inference_output: "outputs/word_inference"
+
+# IPA 변환 설정
+ipa:
+  # 한국어 IPA 변환 활성화
+  enabled: true
+  
+  # 후처리 규칙 적용
+  apply_post_rules: true
+  
+  # 강세 표시
+  stress_marking: false
+
+# 강제 정렬 설정
+alignment:
+  # 단어 수준 정렬
+  enabled: true
+  
+  # 정렬 모델 경로
+  model_path: "models/alignment_model.pth"
+  
+  # 정렬 파라미터
+  window_size: 0.025
+  hop_size: 0.010
+  min_silence_duration: 0.1
+
+# MLflow 설정
+mlflow:
+  enabled: true
+  tracking_uri: "file:./mlruns"
+  experiment_name: "word_training"
+  
+# 시드 설정
+seed: 42
+
+# 디버깅 설정
+debug:
+  # 상세 로깅
+  verbose: true
+  
+  # 그래디언트 체크
+  gradient_checking: false
+  
+  # 메모리 프로파일링
+  memory_profiling: false 

@@ -1,0 +1,160 @@
+# 30개 단어 학습을 위한 최적화된 설정 파일
+_base: word_training.yaml
+
+# 데이터 설정
+data:
+  # 단어 학습용 데이터 경로
+  train_manifest: "data/manifest_word_30_train.json"
+  val_manifest: "data/manifest_word_30_val.json"
+  
+  # 단어 사전 파일 (30개 단어)
+  vocabulary_file: "data/word_vocabulary.txt"
+  
+  # 오디오 설정
+  sample_rate: 16000
+  max_duration: 3.0  # 단어는 보통 1-3초
+  min_duration: 0.3  # 최소 0.3초
+  
+  # 특징 추출 설정
+  feature_type: "mfcc"
+  n_mfcc: 13
+  n_fft: 1024  # 단어는 짧아서 작은 FFT
+  hop_length: 256  # 더 세밀한 시간 해상도
+
+# 모델 설정
+model:
+  type: "wav2vec2"  # 단어 학습에 Wav2Vec2가 효과적
+  pretrained_model: "facebook/wav2vec2-base"
+  
+  # 단어 학습에 최적화된 설정
+  hidden_size: 768
+  num_hidden_layers: 6  # 단어는 간단해서 레이어 줄임
+  num_attention_heads: 12
+  
+  # 어휘 크기 (30개 단어 + 특수 토큰)
+  vocab_size: 50  # 30 + 20 (특수 토큰, 확장용)
+  
+  # 드롭아웃 (과적합 방지)
+  dropout: 0.2
+  attention_dropout: 0.2
+
+# 학습 설정
+training:
+  # 단어 학습에 적합한 설정
+  batch_size: 16  # 작은 배치로 안정적 학습
+  learning_rate: 5e-5  # 작은 학습률로 세밀한 조정
+  weight_decay: 0.01
+  
+  # 에포크 설정
+  max_epochs: 200  # 단어는 많아서 더 많은 에포크
+  early_stopping_patience: 10  # 더 오래 기다림
+  
+  # 스케줄러
+  scheduler: "cosine"
+  warmup_steps: 500  # 단어 학습은 빠르게 시작
+  max_steps: 100000
+  
+  # 체크포인트
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 100
+  
+  # 그래디언트 클리핑
+  max_grad_norm: 0.5  # 더 엄격한 클리핑
+  
+  # 혼합 정밀도
+  fp16: true
+  
+  # 데이터 증강 (단어 학습에 중요)
+  data_augmentation:
+    enabled: true
+    noise_level: 0.02  # 약간의 노이즈
+    time_shift: 0.05   # 작은 시간 이동
+    pitch_shift: 0.05  # 작은 피치 변화
+    speed_change: 0.1  # 속도 변화
+    volume_change: 0.1 # 볼륨 변화
+
+# 평가 설정
+evaluation:
+  # 단어 수준 평가 메트릭
+  metrics:
+    - "word_error_rate"
+    - "phoneme_error_rate"
+    - "character_error_rate"
+    - "word_accuracy"  # 단어별 정확도
+  
+  # 평가 주기
+  eval_strategy: "steps"
+  eval_steps: 500
+  
+  # 모델 저장
+  save_strategy: "steps"
+  save_steps: 500
+
+# 출력 설정
+output:
+  # 모델 저장 경로
+  model_dir: "models/word_30_model"
+  
+  # 로그 및 체크포인트
+  logging_dir: "runs/word_30_training"
+  
+  # 최종 모델
+  final_model_path: "models/word_30_model_final"
+  
+  # 추론 결과
+  inference_output: "outputs/word_30_inference"
+
+# IPA 변환 설정
+ipa:
+  # 한국어 IPA 변환 활성화
+  enabled: true
+  
+  # 후처리 규칙 적용
+  apply_post_rules: true
+  
+  # 강세 표시
+  stress_marking: false
+
+# 강제 정렬 설정
+alignment:
+  # 단어 수준 정렬
+  enabled: true
+  
+  # 정렬 모델 경로
+  model_path: "models/alignment_model.pth"
+  
+  # 정렬 파라미터 (단어에 최적화)
+  window_size: 0.020  # 더 작은 윈도우
+  hop_size: 0.005     # 더 세밀한 해상도
+  min_silence_duration: 0.05  # 단어 간 짧은 침묵
+
+# MLflow 설정
+mlflow:
+  enabled: true
+  tracking_uri: "file:./mlruns"
+  experiment_name: "word_30_training"
+  
+# 시드 설정
+seed: 42
+
+# 디버깅 설정
+debug:
+  # 상세 로깅
+  verbose: true
+  
+  # 그래디언트 체크
+  gradient_checking: false
+  
+  # 메모리 프로파일링
+  memory_profiling: false
+
+# 단어별 성능 추적
+word_tracking:
+  enabled: true
+  # 30개 단어별 개별 성능 추적
+  target_words: [
+    "바지", "가방", "접시", "장갑", "뽀뽀", "포크", "아프다", "단추", "침대", "숟가락",
+    "꽃", "딸기", "목도리", "토끼", "코", "짹짹", "사탕", "우산", "싸우다", "눈사람",
+    "휴지", "비행기", "먹다", "라면", "나무", "그네", "양말", "머리", "나비", "웃다"
+  ] 

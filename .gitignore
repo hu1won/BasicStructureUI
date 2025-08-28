@@ -8,3 +8,10 @@ runs/
 mlruns/
 .dvc/
 .checkpoints/
+
+#manifest
+*.json
+
+#result
+*.txt
+*.png

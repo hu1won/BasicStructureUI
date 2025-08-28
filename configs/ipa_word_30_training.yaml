@@ -13,13 +13,13 @@ data:
   # 오디오 설정
   sample_rate: 16000
   max_duration: 3.0  # 단어는 보통 1-3초
-  min_duration: 0.3  # 최소 0.3초
+  min_duration: 1.0  # 최소 1.0초 (Wav2Vec2 요구사항 충족)
   
   # 특징 추출 설정 (IPA 학습에 최적화)
   feature_type: "mfcc"
   n_mfcc: 13
-  n_fft: 1024  # 단어는 짧아서 작은 FFT
-  hop_length: 256  # 더 세밀한 시간 해상도
+  n_fft: 2048  # 더 큰 FFT로 더 많은 프레임 생성
+  hop_length: 64   # 매우 세밀한 시간 해상도 (더 많은 프레임 생성)
 
 # 모델 설정
 model:

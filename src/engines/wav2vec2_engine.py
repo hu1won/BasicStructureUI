@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor, get_linear_schedule_with_warmup
 from jiwer import wer, cer
 from pathlib import Path
+from typing import Optional, Dict
 from .base_engine import BaseEngine
 from src.data.dataset import ManifestDataset
 
@@ -61,7 +62,7 @@ class Wav2Vec2Engine(BaseEngine):
         self._dump_metrics({"best_dev_wer": best}, "dev_metrics.json")
 
     @torch.no_grad()
-    def evaluate(self, manifest_path: str, save_to: str | None = None) -> dict:
+    def evaluate(self, manifest_path: str, save_to: Optional[str] = None) -> Dict:
         self.model.eval()
         items = [json.loads(l) for l in open(manifest_path, "r", encoding="utf-8")]
         refs, hyps = [], []

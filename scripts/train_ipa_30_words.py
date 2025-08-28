@@ -43,7 +43,50 @@ def load_config(config_path: str) -> Dict:
             base_config.update(config)
             config = base_config
     
+    # 숫자 타입 변환 (문자열로 읽힌 경우 대비)
+    config = _convert_numeric_types(config)
+    
     return config
+
+def _convert_numeric_types(config: Dict) -> Dict:
+    """설정의 숫자 타입을 변환합니다."""
+    # 주요 숫자 필드들만 변환
+    numeric_fields = [
+        'learning_rate', 'lr', 'batch_size', 'max_epochs', 'max_steps',
+        'warmup_steps', 'save_steps', 'eval_steps', 'logging_steps',
+        'weight_decay', 'max_grad_norm', 'dropout', 'attention_dropout',
+        'hidden_size', 'num_hidden_layers', 'num_attention_heads',
+        'vocab_size', 'sample_rate', 'max_duration', 'min_duration',
+        'n_mfcc', 'n_fft', 'hop_length', 'noise_level', 'time_shift',
+        'pitch_shift', 'speed_change', 'volume_change'
+    ]
+    
+    def convert_numeric_string(value):
+        """문자열을 숫자로 변환합니다."""
+        if isinstance(value, str):
+            try:
+                if 'e' in value.lower():  # 과학적 표기법 (예: 3e-5)
+                    return float(value)
+                elif '.' in value:  # 소수점
+                    return float(value)
+                else:  # 정수
+                    return int(value)
+            except ValueError:
+                return value
+        return value
+    
+    # 설정을 복사하여 변환
+    converted_config = {}
+    for key, value in config.items():
+        if key in numeric_fields:
+            converted_config[key] = convert_numeric_string(value)
+        elif isinstance(value, dict):
+            # 중첩된 딕셔너리도 변환
+            converted_config[key] = _convert_numeric_types(value)
+        else:
+            converted_config[key] = value
+    
+    return converted_config
 
 def setup_mlflow(config: Dict):
     """MLflow를 설정합니다."""
@@ -315,7 +358,15 @@ def main():
         # MLflow 설정
         setup_mlflow(config)
         
-        # MLflow 실행 시작
+        # MLflow 실행 시작 (중복 실행 방지)
+        try:
+            # 기존 실행이 있다면 종료
+            if mlflow.active_run():
+                mlflow.end_run()
+                print("기존 MLflow 실행을 종료했습니다.")
+        except:
+            pass
+        
         with mlflow.start_run():
             print("=== IPA 기반 30개 단어 학습 시작 ===")
             print("학습 방식: 음성 → IPA → 텍스트")

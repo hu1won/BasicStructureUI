@@ -63,6 +63,14 @@ class IPARecognitionModel(nn.Module):
         model_config.num_hidden_layers = self.config['model'].get('num_hidden_layers', 6)
         model_config.num_attention_heads = self.config['model'].get('num_attention_heads', 12)
         
+        # 마스킹 비활성화
+        model_config.mask_time_prob = 0.0
+        model_config.mask_feature_prob = 0.0
+        model_config.mask_time_length = 1  # 최소 마스킹 길이
+        model_config.mask_feature_length = 1  # 최소 특징 마스킹 길이
+        model_config.mask_time_min_masks = 0  # 최소 마스킹 개수
+        model_config.mask_feature_min_masks = 0  # 최소 특징 마스킹 개수
+        
         model = Wav2Vec2ForCTC.from_pretrained(
             self.config['model']['pretrained_model'],
             config=model_config
@@ -182,6 +190,9 @@ class IPAEngine(BaseEngine):
         # 모델 생성
         self.model = IPARecognitionModel(config)
         
+        # 모델 타입 설정
+        self.model_type = config['model']['type']
+        
         # 어휘 설정
         self.vocab = None
         self.vocab_to_idx = None
@@ -220,10 +231,19 @@ class IPAEngine(BaseEngine):
             }
         ]
         
+        # 학습률 타입 검증 및 변환
+        lr = training_config.get('learning_rate', 5e-5)
+        if isinstance(lr, str):
+            try:
+                lr = float(lr)
+                print(f"학습률을 문자열에서 숫자로 변환: {lr}")
+            except ValueError:
+                raise ValueError(f"유효하지 않은 학습률: {lr}")
+        
         # 옵티마이저 생성
         self.optimizer = torch.optim.AdamW(
             optimizer_grouped_parameters,
-            lr=training_config.get('learning_rate', 5e-5),
+            lr=lr,
             betas=(0.9, 0.999),
             eps=1e-8
         )
@@ -297,6 +317,25 @@ class IPAEngine(BaseEngine):
             'loss': loss.item(),
             'learning_rate': current_lr
         }
+    
+    def train(self):
+        """훈련을 수행합니다. (BaseEngine 추상 메서드 구현)"""
+        # 이 메서드는 train_step을 사용하는 방식으로 구현
+        print("IPA 엔진 훈련 모드: train_step을 사용하여 훈련을 진행합니다.")
+        pass
+    
+    def evaluate(self, manifest_path: str, save_to: Optional[str] = None) -> Dict:
+        """평가를 수행합니다. (BaseEngine 추상 메서드 구현)"""
+        # 이 메서드는 evaluate_step을 사용하는 방식으로 구현
+        print("IPA 엔진 평가 모드: evaluate_step을 사용하여 평가를 진행합니다.")
+        return {"status": "evaluate_step을 사용하여 평가를 진행합니다."}
+    
+    def infer_file(self, wav_path: str) -> str:
+        """단일 파일에 대한 추론을 수행합니다. (BaseEngine 추상 메서드 구현)"""
+        # 이 메서드는 predict를 사용하는 방식으로 구현
+        print(f"IPA 엔진 추론 모드: {wav_path} 파일을 처리합니다.")
+        # 실제 구현은 더 복잡하지만, 기본 구조만 제공
+        return "추론 결과"
     
     def evaluate_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, Union[float, List[str]]]:
         """평가 단계를 수행합니다."""

@@ -158,32 +158,43 @@ class IPADataset(Dataset):
         try:
             # 오디오 로드
             waveform, sample_rate = torchaudio.load(audio_file)
+            print(f"오디오 로드: {audio_file} - shape: {waveform.shape}, sample_rate: {sample_rate}")
             
             # 모노로 변환
             if waveform.shape[0] > 1:
                 waveform = torch.mean(waveform, dim=0, keepdim=True)
+                print(f"모노 변환 후: {waveform.shape}")
             
             # 리샘플링
             if sample_rate != self.sample_rate:
                 resampler = torchaudio.transforms.Resample(sample_rate, self.sample_rate)
                 waveform = resampler(waveform)
+                print(f"리샘플링 후: {waveform.shape}")
             
             # 길이 조정
             target_length = int(self.sample_rate * self.max_duration)
+            print(f"목표 길이: {target_length} 샘플 ({self.max_duration}초)")
+            
             if waveform.shape[1] > target_length:
                 waveform = waveform[:, :target_length]
+                print(f"길이 자르기 후: {waveform.shape}")
             elif waveform.shape[1] < target_length:
                 # 패딩
                 padding = target_length - waveform.shape[1]
                 waveform = torch.nn.functional.pad(waveform, (0, padding))
+                print(f"길이 패딩 후: {waveform.shape}")
+            else:
+                print(f"길이 조정 불필요: {waveform.shape}")
             
             # 특징 추출
             if self.feature_config == 'mfcc':
                 features = self._extract_mfcc(waveform)
+                print(f"MFCC 특징 추출 완료: {features.shape}")
             elif self.feature_config == 'mel':
                 features = self._extract_mel_spectrogram(waveform)
             else:
                 features = self._extract_mfcc(waveform)  # 기본값
+                print(f"MFCC 특징 추출 완료: {features.shape}")
             
             # 데이터 증강 적용
             if self.aug_enabled:
@@ -197,13 +208,16 @@ class IPADataset(Dataset):
     
     def _create_dummy_audio_features(self) -> torch.Tensor:
         """더미 오디오 특징을 생성합니다 (테스트용)."""
-        # MFCC 특징 크기 계산
-        n_frames = int(self.max_duration * self.sample_rate / self.hop_length) + 1
-        features = torch.randn(n_frames, self.n_mfcc)
+        # MFCC 특징 크기 계산 (최소 100 프레임 보장)
+        n_frames = max(100, int(self.max_duration * self.sample_rate / self.hop_length) + 1)
+        features = torch.randn(self.n_mfcc, n_frames)
+        print(f"더미 오디오 특징 생성: {features.shape}")
         return features
     
     def _extract_mfcc(self, waveform: torch.Tensor) -> torch.Tensor:
         """MFCC 특징을 추출합니다."""
+        print(f"MFCC 추출 시작: waveform shape = {waveform.shape}")
+        
         # MFCC 변환
         mfcc_transform = torchaudio.transforms.MFCC(
             sample_rate=self.sample_rate,
@@ -213,7 +227,21 @@ class IPADataset(Dataset):
         )
         
         mfcc = mfcc_transform(waveform)
-        return mfcc.squeeze(0)  # (n_mfcc, time)
+        print(f"MFCC 변환 후: {mfcc.shape}")
+        
+        mfcc = mfcc.squeeze(0)  # (n_mfcc, time)
+        print(f"MFCC squeeze 후: {mfcc.shape}")
+        
+        # 최소 길이 보장 (Wav2Vec2 요구사항)
+        min_length = 100  # 최소 100 프레임 (마스킹과 컨볼루션 요구사항 모두 충족)
+        if mfcc.shape[1] < min_length:
+            # 패딩으로 최소 길이 보장
+            padding = min_length - mfcc.shape[1]
+            mfcc = torch.nn.functional.pad(mfcc, (0, padding), mode='replicate')
+            print(f"MFCC 길이 부족으로 패딩 적용: {mfcc.shape[1]} 프레임")
+        
+        print(f"MFCC 최종 결과: {mfcc.shape}")
+        return mfcc
     
     def _extract_mel_spectrogram(self, waveform: torch.Tensor) -> torch.Tensor:
         """멜 스펙트로그램을 추출합니다."""

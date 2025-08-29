@@ -1,0 +1,65 @@
+# 간단한 CNN 음성 인식 훈련 설정
+
+# 데이터 설정
+data:
+  train_manifest: "data/manifest_ipa_word_30_train.json"
+  val_manifest: "data/manifest_ipa_word_30_val.json"
+  sample_rate: 16000
+  max_duration: 3.0
+  min_duration: 1.0
+  
+  # 오디오 특징 설정
+  audio:
+    feature_type: "mfcc"
+    mfcc:
+      n_mfcc: 13
+      n_fft: 2048
+      hop_length: 64
+
+# 모델 설정
+model:
+  type: "simple_cnn"
+  vocab_size: 79  # IPA 어휘 크기
+
+# 훈련 설정
+training:
+  batch_size: 8
+  max_epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  early_stopping_patience: 15
+  
+  # 데이터 증강
+  data_augmentation:
+    enabled: true
+    noise_level: 0.01
+    time_shift: 0.1
+    pitch_shift: 0.05
+
+# 평가 설정
+evaluation:
+  metrics:
+    - "accuracy"
+    - "loss"
+  
+  # 평가 주기
+  eval_strategy: "epoch"
+
+# 출력 설정
+output:
+  model_dir: "models/simple_cnn_model"
+  logging_dir: "runs/simple_cnn_training"
+
+# IPA 변환 설정
+ipa:
+  enabled: true
+  apply_post_rules: true
+  stress_marking: false
+
+# 시드 설정
+seed: 42
+
+# 디버깅 설정
+debug:
+  verbose: true
+  save_intermediate: true 

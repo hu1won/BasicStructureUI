@@ -8,7 +8,7 @@ import json
 import torch
 import numpy as np
 import librosa
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Any
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 import torchaudio
@@ -295,6 +295,64 @@ class IPADataset(Dataset):
             features = features * (1 + pitch_shift * torch.randn_like(features))
         
         return features
+    
+    def collate_fn(self, batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
+        """배치 데이터를 정렬합니다."""
+        # 배치에서 각 항목 추출
+        audio_features = [item['audio_features'] for item in batch]
+        ipa_indices = [item['ipa_indices'] for item in batch]
+        texts = [item['text'] for item in batch]
+        
+        # 오디오 특징 패딩
+        max_time = max(feat.shape[1] for feat in audio_features)
+        padded_features = []
+        
+        for feat in audio_features:
+            if feat.shape[1] < max_time:
+                padding = max_time - feat.shape[1]
+                padded_feat = torch.nn.functional.pad(feat, (0, padding), mode='replicate')
+            else:
+                padded_feat = feat
+            padded_features.append(padded_feat)
+        
+        # IPA 인덱스 패딩 (텐서인지 리스트인지 확인)
+        if isinstance(ipa_indices[0], torch.Tensor):
+            # 텐서인 경우
+            max_seq_len = max(indices.shape[0] for indices in ipa_indices)
+            padded_indices = []
+            
+            for indices in ipa_indices:
+                if indices.shape[0] < max_seq_len:
+                    padding = max_seq_len - indices.shape[0]
+                    padded_ind = torch.cat([indices, torch.zeros(padding, dtype=indices.dtype)])
+                else:
+                    padded_ind = indices
+                padded_indices.append(padded_ind)
+            
+            ipa_tensor = torch.stack(padded_indices)
+        else:
+            # 리스트인 경우
+            max_seq_len = max(len(indices) for indices in ipa_indices)
+            padded_indices = []
+            
+            for indices in ipa_indices:
+                if len(indices) < max_seq_len:
+                    padding = max_seq_len - len(indices)
+                    padded_ind = indices + [0] * padding
+                else:
+                    padded_ind = indices
+                padded_indices.append(padded_ind)
+            
+            ipa_tensor = torch.tensor(padded_indices, dtype=torch.long)
+        
+        # 텐서로 변환
+        audio_tensor = torch.stack(padded_features)
+        
+        return {
+            'audio_features': audio_tensor,
+            'ipa_indices': ipa_tensor,
+            'texts': texts
+        }
     
     def _create_ipa_target(self, text: str) -> str:
         """텍스트를 IPA로 변환합니다."""

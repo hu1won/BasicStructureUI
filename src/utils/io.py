@@ -76,6 +76,29 @@ def load_yaml(file_path: str) -> Any:
     with open(file_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
+def load_config(config_path: str) -> Dict[str, Any]:
+    """설정 파일을 로드하고 기본값을 적용합니다.
+    
+    Args:
+        config_path (str): 설정 파일 경로
+        
+    Returns:
+        설정 딕셔너리
+    """
+    # YAML 파일 로드
+    config = load_yaml(config_path)
+    
+    # 기본 설정이 있는 경우 로드
+    if 'base_config' in config:
+        base_config_path = config['base_config']
+        if os.path.exists(base_config_path):
+            base_config = load_yaml(base_config_path)
+            # 기본 설정을 먼저 로드하고 현재 설정으로 덮어쓰기
+            base_config.update(config)
+            config = base_config
+    
+    return config
+
 def save_pickle(data: Any, file_path: str):
     """데이터를 pickle 파일로 저장합니다.
     

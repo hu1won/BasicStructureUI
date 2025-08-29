@@ -38,11 +38,11 @@ model:
   dropout: 0.2
   attention_dropout: 0.2
 
-# 학습 설정
+  # 학습 설정
 training:
   # IPA 학습에 적합한 설정
-  batch_size: 16  # 작은 배치로 안정적 학습
-  learning_rate: 3e-5  # IPA 학습은 더 작은 학습률
+  batch_size: 8  # 데이터 크기에 맞게 배치 크기 조정 (24개 샘플)
+  learning_rate: 1e-5  # 학습률 감소로 안정성 향상
   weight_decay: 0.01
   
   # 에포크 설정
@@ -60,7 +60,7 @@ training:
   logging_steps: 100
   
   # 그래디언트 클리핑
-  max_grad_norm: 0.3  # IPA 학습은 더 엄격한 클리핑
+  max_grad_norm: 1.0  # 그래디언트 클리핑 완화로 안정성 향상
   
   # 혼합 정밀도
   fp16: true

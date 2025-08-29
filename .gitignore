@@ -12,7 +12,17 @@ mlruns/
 #manifest
 *.json
 
-#result
+#output
 *.txt
 *.png
 *.pth
+
+#logs
+*.log
+*.log.*
+*.log.*.*
+*.log.*.*.*
+*.log.*.*.*.*
+*.log.*.*.*.*.*
+*.log.*.*.*.*.*.*
+*.log.*.*.*.*.*.*.*

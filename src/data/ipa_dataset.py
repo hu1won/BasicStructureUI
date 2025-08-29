@@ -218,16 +218,29 @@ class IPADataset(Dataset):
         """MFCC 특징을 추출합니다."""
         print(f"MFCC 추출 시작: waveform shape = {waveform.shape}")
         
-        # MFCC 변환
-        mfcc_transform = torchaudio.transforms.MFCC(
-            sample_rate=self.sample_rate,
-            n_mfcc=self.n_mfcc,
-            n_fft=self.n_fft,
-            hop_length=self.hop_length
-        )
-        
-        mfcc = mfcc_transform(waveform)
-        print(f"MFCC 변환 후: {mfcc.shape}")
+        try:
+            # MFCC 변환 (torchaudio 버전에 맞게 파라미터 조정)
+            mfcc_transform = torchaudio.transforms.MFCC(
+                sample_rate=self.sample_rate,
+                n_mfcc=self.n_mfcc,
+                melkwargs={
+                    'n_fft': self.n_fft,
+                    'hop_length': self.hop_length
+                }
+            )
+            
+            mfcc = mfcc_transform(waveform)
+            print(f"MFCC 변환 후: {mfcc.shape}")
+            
+        except Exception as e:
+            print(f"MFCC 변환 실패, 기본 파라미터로 재시도: {e}")
+            # 기본 파라미터로 재시도
+            mfcc_transform = torchaudio.transforms.MFCC(
+                sample_rate=self.sample_rate,
+                n_mfcc=self.n_mfcc
+            )
+            mfcc = mfcc_transform(waveform)
+            print(f"MFCC 기본 변환 후: {mfcc.shape}")
         
         mfcc = mfcc.squeeze(0)  # (n_mfcc, time)
         print(f"MFCC squeeze 후: {mfcc.shape}")
